@@ -2,7 +2,7 @@
 
 ### Build
 - **Checkout dev branch.** This will contain work queued up for the next release.
-- **Update version number.** Manually update version number in `src/lightbox.js` and `package.json`. Don't use `npm version`.
+- **Update version number.** Manually update version number in `src/lightbox.ts` and `package.json`. Don't use `npm version`.
 - **`grunt build`.** Make sure you have run `bower install` ahead of this as it will pull down jQuery which is utilized in the build step.
 - **Merge to `master`.** Commit changes and push to new branch. Create PR from this branch to `master`. Merge.
 

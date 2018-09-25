@@ -1,9 +1,9 @@
-module.exports = function(grunt) {
+module.exports = grunt => {
 
   grunt.initConfig({
     concat: {
       dist: {
-        src: ['bower_components/jquery/dist/jquery.js', 'src/js/lightbox.js'],
+        src: ['bower_components/jquery/dist/jquery.js', 'src/js/lightbox.ts'],
         dest: 'dist/js/lightbox-plus-jquery.js',
       },
     },
@@ -28,7 +28,7 @@ module.exports = function(grunt) {
     },
     jshint: {
       all: [
-        'src/js/lightbox.js'
+        'src/js/lightbox.ts'
       ],
       options: {
         jshintrc: true
@@ -36,7 +36,7 @@ module.exports = function(grunt) {
     },
     jscs: {
       src: [
-        'src/js/lightbox.js'
+        'src/js/lightbox.ts'
       ],
       options: {
         config: ".jscsrc"
@@ -49,20 +49,20 @@ module.exports = function(grunt) {
       },
       dist: {
         files: {
-          'dist/js/lightbox.min.js': ['src/js/lightbox.js'],
+          'dist/js/lightbox.min.js': ['src/js/lightbox.ts'],
           'dist/js/lightbox-plus-jquery.min.js': ['dist/js/lightbox-plus-jquery.js']
         }
       }
     },
     watch: {
       jshint: {
-        files: ['src/js/lightbox.js'],
+        files: ['src/js/lightbox.ts'],
         tasks: ['jshint', 'jscs']
       }
     },
     cssmin: {
       minify: {
-          src: 'dist/css/lightbox.css',
+          src: 'dist/css/lightbox.sass',
           dest: 'dist/css/lightbox.min.css'
       }
     }

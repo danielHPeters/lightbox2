@@ -1,0 +1,17 @@
+$outerContainerBackgroundColor: white
+
+.lb-outerContainer
+  position: relative
+  *zoom: 1
+  width: 250px
+  height: 250px
+  margin: 0 auto
+  border-radius: 4px
+
+  /* Background color behind image.
+     This is visible during transitions. */
+  background-color: $outerContainerBackgroundColor
+  &::after
+    content: ""
+    display: table
+    clear: both
