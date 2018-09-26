@@ -6,6 +6,7 @@
     "lib": [
       "es5",
       "es6",
+      "es2016.array.include",
       "dom"
     ]
   },

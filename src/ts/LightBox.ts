@@ -51,6 +51,7 @@ export default class LightBox {
   private nav: JQuery<HTMLElement>
   private containerPadding: Box
   private imageBorderWidth: Box
+  private keyboardEventHandler: any
 
   private constructor (options?: Partial<LightBoxOptions>) {
     this.album = []
@@ -58,6 +59,7 @@ export default class LightBox {
 
     // options
     this.options = $.extend({}, options, LightBox.defaults)
+    this.keyboardEventHandler = this.keyboardAction.bind(this)
   }
 
   static getInstance (options?: Partial<LightBoxOptions>): LightBox {
@@ -446,43 +448,30 @@ export default class LightBox {
   }
 
   enableKeyboardNav (): void {
-    document.addEventListener('keyup', evt => this.keyboardAction(evt))
+    document.addEventListener('keyup', this.keyboardEventHandler)
   }
 
   disableKeyboardNav (): void {
-    document.removeEventListener('keyup', evt => this.keyboardAction(evt))
+    document.removeEventListener('keyup', this.keyboardEventHandler)
   }
 
   keyboardAction (event: KeyboardEvent): void {
-    switch (event.key) {
-      case 'Left': // IE specific value
-      case 'ArrowLeft':
-      case 'p':
-        if (this.currentImageIndex !== 0) {
-          this.changeImage(this.currentImageIndex - 1)
-        } else if (this.options.wrapAround && this.album.length > 1) {
-          this.changeImage(this.album.length - 1)
-        }
-        break
-      case 'Right': // IE specific value
-      case 'ArrowRight':
-      case 'n':
-        if (this.currentImageIndex !== this.album.length - 1) {
-          this.changeImage(this.currentImageIndex + 1)
-        } else if (this.options.wrapAround && this.album.length > 1) {
-          this.changeImage(0)
-        }
-        break
-      case 'Escape':
-      case 'x':
-      case 'o':
-      case 'c':
-        this.end()
-        break
-      default:
-        return
+    console.log('change')
+    if (['Left', 'ArrowLeft', 'p', 'P'].includes(event.key)) {
+      if (this.currentImageIndex !== 0) {
+        this.changeImage(this.currentImageIndex - 1)
+      } else if (this.options.wrapAround && this.album.length > 1) {
+        this.changeImage(this.album.length - 1)
+      }
+    } else if (['Right', 'ArrowRight', 'n', 'N'].includes(event.key)) {
+      if (this.currentImageIndex !== this.album.length - 1) {
+        this.changeImage(this.currentImageIndex + 1)
+      } else if (this.options.wrapAround && this.album.length > 1) {
+        this.changeImage(0)
+      }
+    } else if (['Escape', 'x', 'X', 'o', 'O', 'c', 'c'].includes(event.key)) {
+      this.end()
     }
-    event.preventDefault()
   }
 
   end (): void {
