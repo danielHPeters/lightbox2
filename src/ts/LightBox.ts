@@ -65,18 +65,22 @@ export default class LightBox {
   static getInstance (options?: Partial<LightBoxOptions>): LightBox {
     if (LightBox.instance === undefined) {
       LightBox.instance = new LightBox(options)
-      // Both enable and build methods require the body tag to be in the DOM.
     }
     return LightBox.instance
   }
 
-  imageCountLabel (currentImageIndex: number, totalImages: number): string {
+  init (): void {
+    this.enable()
+    this.build()
+  }
+
+  private imageCountLabel (currentImageIndex: number, totalImages: number): string {
     return this.options.albumLabel.replace(
       /%1/g, currentImageIndex.toString()).replace(/%2/g, totalImages.toString()
     )
   }
 
-  enable (): void {
+  private enable (): void {
     $('body').on(
       'click',
       'a[rel^=lightbox], area[rel^=lightbox], a[data-lightbox], area[data-lightbox]',
@@ -86,13 +90,13 @@ export default class LightBox {
       })
   }
 
-  generateHtmlLayout (): void {
+  private generateHtmlLayout (): void {
     $('body').append(
       '<div id="lightboxOverlay" class="lightboxOverlay"></div><div id="lightbox" class="lightbox"><div class="lb-outerContainer"><div class="lb-container"><img class="lb-image" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" /><div class="lb-nav"><a class="lb-prev" href="" ></a><a class="lb-next" href="" ></a></div><div class="lb-loader"><a class="lb-cancel"></a></div></div></div><div class="lb-dataContainer"><div class="lb-data"><div class="lb-details"><span class="lb-caption"></span><span class="lb-number"></span></div><div class="lb-closeContainer"><a class="lb-close"></a></div></div></div></div>'
     )
   }
 
-  cache (): void {
+  private cache (): void {
     // Cache jQuery objects
     this.lightbox = $('#lightbox')
     this.overlay = $('#lightboxOverlay')
@@ -117,7 +121,7 @@ export default class LightBox {
     }
   }
 
-  build (): void {
+  private build (): void {
     console.log('Start build')
     this.generateHtmlLayout()
     this.cache()
@@ -189,7 +193,7 @@ export default class LightBox {
     })
   }
 
-  start ($link): void {
+  private start ($link): void {
     const $window = $(window)
 
     $window.on('resize', () => this.sizeOverlay())
@@ -209,7 +213,6 @@ export default class LightBox {
 
     if (dataLightboxValue) {
       $links = $($link.prop('tagName') + '[data-lightbox="' + dataLightboxValue + '"]')
-      // $links.forEach(link => this.addToAlbum(link))
       for (let i = 0; i < $links.length; i = ++i) {
         this.addToAlbum($($links[i]))
         if ($links[i] === $link[0]) {
@@ -242,13 +245,13 @@ export default class LightBox {
 
     // Disable scrolling of the page while open
     if (this.options.disableScrolling) {
-      $('html').addClass('lb-disable-scrolling')
+      document.documentElement.classList.add('lb-disable-scrolling')
     }
 
     this.changeImage(imageNumber)
   }
 
-  changeImage (imageNumber: number): void {
+  private changeImage (imageNumber: number): void {
     this.disableKeyboardNav()
     const image = this.lightbox.find('.lb-image')
 
@@ -317,7 +320,7 @@ export default class LightBox {
     this.currentImageIndex = imageNumber
   }
 
-  addToAlbum (link): void {
+  private addToAlbum (link): void {
     this.album.push({
       alt: link.attr('data-alt'),
       link: link.attr('href'),
@@ -325,13 +328,13 @@ export default class LightBox {
     })
   }
 
-  sizeOverlay (): void {
+  private sizeOverlay (): void {
     this.overlay
       .width($(document).width())
       .height($(document).height())
   }
 
-  sizeContainer (imageWidth: number, imageHeight: number) {
+  private sizeContainer (imageWidth: number, imageHeight: number) {
     const oldWidth = this.outerContainer.outerWidth()
     const oldHeight = this.outerContainer.outerHeight()
     const newWidth = imageWidth + this.containerPadding.left + this.containerPadding.right + this.imageBorderWidth.left + this.imageBorderWidth.right
@@ -349,14 +352,14 @@ export default class LightBox {
     }
   }
 
-  postResize (newWidth: number, newHeight: number) {
+  private postResize (newWidth: number, newHeight: number) {
     this.lightbox.find('.lb-dataContainer').width(newWidth)
     this.lightbox.find('.lb-prevLink').height(newHeight)
     this.lightbox.find('.lb-nextLink').height(newHeight)
     this.showImage()
   }
 
-  showImage (): void {
+  private showImage (): void {
     this.lightbox.find('.lb-loader').stop(true).hide()
     this.lightbox.find('.lb-image').fadeIn(this.options.imageFadeDuration)
 
@@ -366,7 +369,7 @@ export default class LightBox {
     this.enableKeyboardNav()
   }
 
-  updateNav (): void {
+  private updateNav (): void {
     // Check to see if the browser supports touch events. If so, we take the conservative approach
     // and assume that mouse hover events are not supported and always show prev/next navigation
     // arrows in image sets.
@@ -403,7 +406,7 @@ export default class LightBox {
     }
   }
 
-  updateDetails (): void {
+  private updateDetails (): void {
     // Enable anchor clicks in the injected caption html.
     // Thanks Nate Wright for the fix. @https://github.com/NateWr
     if (typeof this.album[this.currentImageIndex].title !== undefined &&
@@ -436,7 +439,7 @@ export default class LightBox {
     this.lightbox.find('.lb-dataContainer').fadeIn(this.options.resizeDuration, () => this.sizeOverlay())
   }
 
-  preloadNeighboringImages (): void {
+  private preloadNeighboringImages (): void {
     if (this.album.length > this.currentImageIndex + 1) {
       const preloadNext = new Image()
       preloadNext.src = this.album[this.currentImageIndex + 1].link
@@ -447,16 +450,15 @@ export default class LightBox {
     }
   }
 
-  enableKeyboardNav (): void {
+  private enableKeyboardNav (): void {
     document.addEventListener('keyup', this.keyboardEventHandler)
   }
 
-  disableKeyboardNav (): void {
+  private disableKeyboardNav (): void {
     document.removeEventListener('keyup', this.keyboardEventHandler)
   }
 
-  keyboardAction (event: KeyboardEvent): void {
-    console.log('change')
+  private keyboardAction (event: KeyboardEvent): void {
     if (['Left', 'ArrowLeft', 'p', 'P'].includes(event.key)) {
       if (this.currentImageIndex !== 0) {
         this.changeImage(this.currentImageIndex - 1)
@@ -474,7 +476,7 @@ export default class LightBox {
     }
   }
 
-  end (): void {
+  private end (): void {
     this.disableKeyboardNav()
     $(window).off('resize', this.sizeOverlay)
     this.lightbox.fadeOut(this.options.fadeDuration)
