@@ -27,22 +27,24 @@
     }
   ],
   "scripts": {
-    "start": "webpack-dev-server"
+    "start": "webpack-dev-server",
+    "lint": "tslint src/ts/**/*.ts"
   },
   "devDependencies": {
     "@types/jquery": "^3.3.10",
-    "grunt": "^1.0.3",
-    "grunt-contrib-concat": "^1.0.1",
-    "grunt-contrib-connect": "^2.0.0",
-    "grunt-contrib-copy": "^1.0.0",
-    "grunt-contrib-cssmin": "^3.0.0",
-    "grunt-contrib-jshint": "^2.0.0",
-    "grunt-contrib-uglify": "~4.0.0",
+    "awesome-typescript-loader": "^5.2.1",
+    "css-loader": "^1.0.0",
+    "extract-text-webpack-plugin": "^4.0.0-beta.0",
+    "file-loader": "^2.0.0",
     "grunt-contrib-watch": "^1.1.0",
-    "grunt-jscs": "^3.0.1",
+    "node-sass": "^4.9.3",
+    "resolve-url-loader": "^3.0.0",
+    "sass-loader": "^7.1.0",
+    "style-loader": "^0.23.0",
     "tslint": "^5.11.0",
     "tslint-config-standard": "^8.0.1",
     "typescript": "^3.0.3",
+    "url-loader": "^1.1.1",
     "webpack": "^4.20.1",
     "webpack-dev-server": "^3.1.9"
   },

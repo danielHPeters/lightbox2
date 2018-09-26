@@ -1,3 +1,6 @@
+[![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+[![Dependencies Status](https://david-dm.org/danielHPeters/lightbox2.svg)](https://david-dm.org/danielHPeters/lightbox2.svg)
+[![CodeFactor](https://www.codefactor.io/repository/github/danielhpeters/lightbox2/badge)](https://www.codefactor.io/repository/github/danielhpeters/lightbox2)
 # Lightbox2
 
 The original lightbox script. Eight years later — still going strong!

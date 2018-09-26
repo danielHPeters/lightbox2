@@ -26,7 +26,7 @@ export interface LightBoxOptions {
 }
 
 export default class LightBox {
-  static defaults: Partial<LightBoxOptions> = {
+  static readonly defaults: Partial<LightBoxOptions> = {
     albumLabel: 'Image %1 of %2',
     alwaysShowNavOnTouchDevices: false,
     fadeDuration: 600,
@@ -64,15 +64,11 @@ export default class LightBox {
     if (LightBox.instance === undefined) {
       LightBox.instance = new LightBox(options)
       // Both enable and build methods require the body tag to be in the DOM.
-      document.addEventListener('DOMContentLoaded', () => {
-        LightBox.instance.enable()
-        LightBox.instance.build()
-      })
     }
     return LightBox.instance
   }
 
-  imageCountLabel (currentImageIndex: number, totalImages: number) {
+  imageCountLabel (currentImageIndex: number, totalImages: number): string {
     return this.options.albumLabel.replace(
       /%1/g, currentImageIndex.toString()).replace(/%2/g, totalImages.toString()
     )
@@ -89,34 +85,9 @@ export default class LightBox {
   }
 
   generateHtmlLayout (): void {
-    $(
-      '<div id="lightboxOverlay" class="lightboxOverlay"></div>' +
-      '<div id="lightbox" class="lightbox">' +
-      '<div class="lb-outerContainer">' +
-      '<div class="lb-container">' +
-      '<img class="lb-image" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" />' +
-      '<div class="lb-nav">' +
-      '<a class="lb-prev" href="" ></a>' +
-      '<a class="lb-next" href="" ></a>' +
-      '</div>' +
-      '<div class="lb-loader">' +
-      '<a class="lb-cancel"></a>' +
-      '</div>' +
-      '</div>' +
-      '</div>' +
-      '<div class="lb-dataContainer">' +
-      '<div class="lb-data">' +
-      '<div class="lb-details">' +
-      '<span class="lb-caption"></span>' +
-      '<span class="lb-number"></span>' +
-      '</div>' +
-      '<div class="lb-closeContainer">' +
-      '<a class="lb-close"></a>' +
-      '</div>' +
-      '</div>' +
-      '</div>' +
-      '</div>'
-    ).appendTo($('body'))
+    $('body').append(
+      '<div id="lightboxOverlay" class="lightboxOverlay"></div><div id="lightbox" class="lightbox"><div class="lb-outerContainer"><div class="lb-container"><img class="lb-image" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" /><div class="lb-nav"><a class="lb-prev" href="" ></a><a class="lb-next" href="" ></a></div><div class="lb-loader"><a class="lb-cancel"></a></div></div></div><div class="lb-dataContainer"><div class="lb-data"><div class="lb-details"><span class="lb-caption"></span><span class="lb-number"></span></div><div class="lb-closeContainer"><a class="lb-close"></a></div></div></div></div>'
+    )
   }
 
   cache (): void {
@@ -128,7 +99,7 @@ export default class LightBox {
     this.image = this.lightbox.find('.lb-image')
     this.nav = this.lightbox.find('.lb-nav')
 
-    // Store css values for future lookup
+    // Store sass values for future lookup
     this.containerPadding = {
       top: parseInt(this.container.css('padding-top'), 10),
       right: parseInt(this.container.css('padding-right'), 10),
@@ -145,8 +116,9 @@ export default class LightBox {
   }
 
   build (): void {
-    this.cache()
+    console.log('Start build')
     this.generateHtmlLayout()
+    this.cache()
 
     // Attach event handlers to the newly minted DOM elements
     this.overlay.hide().on('click', () => {
@@ -235,7 +207,7 @@ export default class LightBox {
 
     if (dataLightboxValue) {
       $links = $($link.prop('tagName') + '[data-lightbox="' + dataLightboxValue + '"]')
-      $links.forEach(link => this.addToAlbum(link))
+      // $links.forEach(link => this.addToAlbum(link))
       for (let i = 0; i < $links.length; i = ++i) {
         this.addToAlbum($($links[i]))
         if ($links[i] === $link[0]) {
@@ -276,7 +248,7 @@ export default class LightBox {
 
   changeImage (imageNumber: number): void {
     this.disableKeyboardNav()
-    const $image = this.lightbox.find('.lb-image')
+    const image = this.lightbox.find('.lb-image')
 
     this.overlay.fadeIn(this.options.fadeDuration)
 
@@ -295,13 +267,13 @@ export default class LightBox {
       let windowHeight
       let windowWidth
 
-      $image.attr({
-        'alt': this.album[imageNumber].alt,
-        'src': this.album[imageNumber].link
+      image.attr({
+        alt: this.album[imageNumber].alt,
+        src: this.album[imageNumber].link
       })
 
-      $image.width(preloader.width)
-      $image.height(preloader.height)
+      image.width(preloader.width)
+      image.height(preloader.height)
 
       if (this.options.fitImagesInViewport) {
         // Fit image inside the viewport.
@@ -326,28 +298,28 @@ export default class LightBox {
           if ((preloader.width / maxImageWidth) > (preloader.height / maxImageHeight)) {
             imageWidth = maxImageWidth
             imageHeight = preloader.height / (preloader.width / imageWidth)
-            $image.width(imageWidth)
-            $image.height(imageHeight)
+            image.width(imageWidth)
+            image.height(imageHeight)
           } else {
             imageHeight = maxImageHeight
             imageWidth = preloader.width / (preloader.height / imageHeight)
-            $image.width(imageWidth)
-            $image.height(imageHeight)
+            image.width(imageWidth)
+            image.height(imageHeight)
           }
         }
       }
-      this.sizeContainer($image.width(), $image.height())
+      this.sizeContainer(image.width(), image.height())
     }
 
     preloader.src = this.album[imageNumber].link
     this.currentImageIndex = imageNumber
   }
 
-  addToAlbum ($link): void {
+  addToAlbum (link): void {
     this.album.push({
-      alt: $link.attr('data-alt'),
-      link: $link.attr('href'),
-      title: $link.attr('data-title') || $link.attr('title')
+      alt: link.attr('data-alt'),
+      link: link.attr('href'),
+      title: link.attr('data-title') || link.attr('title')
     })
   }
 
@@ -400,7 +372,9 @@ export default class LightBox {
     try {
       document.createEvent('TouchEvent')
       alwaysShowNav = this.options.alwaysShowNavOnTouchDevices
-    } catch (e) {}
+    } catch (e) {
+      console.error(e)
+    }
 
     this.lightbox.find('.lb-nav').show()
 
@@ -433,13 +407,13 @@ export default class LightBox {
     if (typeof this.album[this.currentImageIndex].title !== undefined &&
       this.album[this.currentImageIndex].title !== '') {
       const $caption = this.lightbox.find('.lb-caption')
+
       if (this.options.sanitizeTitle) {
         $caption.text(this.album[this.currentImageIndex].title)
       } else {
         $caption.html(this.album[this.currentImageIndex].title)
       }
-      $caption.fadeIn('fast')
-        .find('a').on('click', function (event) {
+      $caption.fadeIn('fast').find('a').on('click', function () {
         if ($(this).attr('target') !== undefined) {
           window.open($(this).attr('href'), $(this).attr('target'))
         } else {
