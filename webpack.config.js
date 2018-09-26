@@ -9,6 +9,7 @@ module.exports = {
     lightbox: ['./src/ts/app.ts', './src/sass/lightbox.sass'],
   },
   output: {
+    publicPath: '/dist',
     path: path.join(__dirname, './dist'),
     filename: './js/[name].min.js'
   },

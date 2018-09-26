@@ -27,7 +27,7 @@
     }
   ],
   "scripts": {
-    "start": "webpack-dev-server",
+    "start": "webpack-dev-server --content-base ./examples",
     "lint": "tslint src/ts/**/*.ts"
   },
   "devDependencies": {
