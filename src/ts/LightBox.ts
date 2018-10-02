@@ -83,7 +83,7 @@ export default class LightBox {
   private enable (): void {
     $('body').on(
       'click',
-      'a[rel^=lightbox], area[rel^=lightbox], a[data-lightbox], area[data-lightbox]',
+      'a[data-lightbox], area[data-lightbox]',
       event => {
         this.start($(event.currentTarget))
         return false
@@ -232,31 +232,13 @@ export default class LightBox {
     this.album = []
     let imageNumber = 0
 
-    // Support both data-lightbox attribute and rel attribute implementations
     const dataLightboxValue = $link.attr('data-lightbox')
-    let $links
+    const $links = $($link.prop('tagName') + '[data-lightbox="' + dataLightboxValue + '"]')
 
-    if (dataLightboxValue) {
-      $links = $($link.prop('tagName') + '[data-lightbox="' + dataLightboxValue + '"]')
-      for (let i = 0; i < $links.length; i = ++i) {
-        this.addToAlbum($($links[i]))
-        if ($links[i] === $link[0]) {
-          imageNumber = i
-        }
-      }
-    } else {
-      if ($link.attr('rel') === 'lightbox') {
-        // If image is not part of a set
-        this.addToAlbum($link)
-      } else {
-        // If image is part of a set
-        $links = $($link.prop('tagName') + '[rel="' + $link.attr('rel') + '"]')
-        for (let i = 0; i < $links.length; i = ++i) {
-          this.addToAlbum($($links[i]))
-          if ($links[i] === $link[0]) {
-            imageNumber = i
-          }
-        }
+    for (let i = 0; i < $links.length; i = ++i) {
+      this.addToAlbum($($links[i]))
+      if ($links[i] === $link[0]) {
+        imageNumber = i
       }
     }
 
