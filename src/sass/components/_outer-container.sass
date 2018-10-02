@@ -1,17 +1,16 @@
-$outerContainerBackgroundColor: white
-
-.lb-outerContainer
-  position: relative
-  *zoom: 1
-  width: 250px
+.lb-outer-container
+  // Background color behind image.
+  // This is visible during transitions.
+  background-color: $outer-container-background-color
+  border-radius: $outer-container-border-radius
   height: 250px
   margin: 0 auto
-  border-radius: 4px
+  position: relative
+  width: 250px
+  zoom: 1
 
-  /* Background color behind image.
-     This is visible during transitions. */
-  background-color: $outerContainerBackgroundColor
+
   &::after
-    content: ""
-    display: table
     clear: both
+    content: ''
+    display: table

@@ -38,6 +38,7 @@
     "file-loader": "^2.0.0",
     "node-sass": "^4.9.3",
     "resolve-url-loader": "^3.0.0",
+    "sass-lint": "^1.12.1",
     "sass-loader": "^7.1.0",
     "style-loader": "^0.23.0",
     "tslint": "^5.11.0",

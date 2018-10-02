@@ -1,21 +1,21 @@
-.lightbox
+.lb
   font-family: 'Roboto', sans-serif
-  position: absolute
+  font-weight: normal
   left: 0
+  line-height: 0
+  position: absolute
+  text-align: center
   width: 100%
   z-index: 10000
-  text-align: center
-  line-height: 0
-  font-weight: normal
+
   .lb-image
+    border: 4px solid $image-border-color
+    border-radius: 3px
     display: block
     height: auto
-    max-width: inherit
     max-height: none
-    border-radius: 3px
+    max-width: inherit
 
-    /* Image border */
-    border: 4px solid white
-
-  a img
-    border: none
+  a
+    img
+      border: 0

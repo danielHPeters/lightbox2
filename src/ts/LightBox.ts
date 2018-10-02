@@ -51,7 +51,7 @@ export default class LightBox {
   private nav: JQuery<HTMLElement>
   private containerPadding: Box
   private imageBorderWidth: Box
-  private keyboardEventHandler: any
+  private readonly keyboardEventHandler: any
 
   private constructor (options?: Partial<LightBoxOptions>) {
     this.album = []
@@ -92,15 +92,40 @@ export default class LightBox {
 
   private generateHtmlLayout (): void {
     $('body').append(
-      '<div id="lightboxOverlay" class="lightboxOverlay"></div><div id="lightbox" class="lightbox"><div class="lb-outerContainer"><div class="lb-container"><img class="lb-image" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" /><div class="lb-nav"><a class="lb-prev" href="" ></a><a class="lb-next" href="" ></a></div><div class="lb-loader"><a class="lb-cancel"></a></div></div></div><div class="lb-dataContainer"><div class="lb-data"><div class="lb-details"><span class="lb-caption"></span><span class="lb-number"></span></div><div class="lb-closeContainer"><a class="lb-close"></a></div></div></div></div>'
+      '<div id="lightBoxOverlay" class="lb-overlay"></div>' +
+      '<div id="lightBox" class="lb">' +
+      '<div class="lb-outer-container">' +
+      '<div class="lb-container">' +
+      '<img class="lb-image" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==">' +
+      '<div class="lb-nav">' +
+      '<a class="lb-prev" href="" ></a>' +
+      '<a class="lb-next" href="" ></a>' +
+      '</div>' +
+      '<div class="lb-loader">' +
+      '<a class="lb-cancel"></a>' +
+      '</div>' +
+      '</div>' +
+      '</div>' +
+      '<div class="lb-data-container">' +
+      '<div class="lb-data">' +
+      '<div class="lb-details">' +
+      '<span class="lb-caption"></span>' +
+      '<span class="lb-number"></span>' +
+      '</div>' +
+      '<div class="lb-close-container">' +
+      '<a class="lb-close"></a>' +
+      '</div>' +
+      '</div>' +
+      '</div>' +
+      '</div>'
     )
   }
 
   private cache (): void {
     // Cache jQuery objects
-    this.lightbox = $('#lightbox')
-    this.overlay = $('#lightboxOverlay')
-    this.outerContainer = this.lightbox.find('.lb-outerContainer')
+    this.lightbox = $('#lightBox')
+    this.overlay = $('#lightBoxOverlay')
+    this.outerContainer = this.lightbox.find('.lb-outer-container')
     this.container = this.lightbox.find('.lb-container')
     this.image = this.lightbox.find('.lb-image')
     this.nav = this.lightbox.find('.lb-nav')
@@ -133,14 +158,14 @@ export default class LightBox {
     })
 
     this.lightbox.hide().on('click', event => {
-      if ($(event.target).attr('id') === 'lightbox') {
+      if ($(event.target).attr('id') === 'lightBox') {
         this.end()
       }
       return false
     })
 
     this.outerContainer.on('click', event => {
-      if ($(event.target).attr('id') === 'lightbox') {
+      if ($(event.target).attr('id') === 'lightBox') {
         this.end()
       }
       return false
@@ -258,7 +283,7 @@ export default class LightBox {
     this.overlay.fadeIn(this.options.fadeDuration)
 
     $('.lb-loader').fadeIn('slow')
-    this.lightbox.find('.lb-image, .lb-nav, .lb-prev, .lb-next, .lb-dataContainer, .lb-numbers, .lb-caption').hide()
+    this.lightbox.find('.lb-image, .lb-nav, .lb-prev, .lb-next, .lb-data-container, .lb-numbers, .lb-caption').hide()
 
     this.outerContainer.addClass('animating')
 
@@ -353,9 +378,9 @@ export default class LightBox {
   }
 
   private postResize (newWidth: number, newHeight: number) {
-    this.lightbox.find('.lb-dataContainer').width(newWidth)
-    this.lightbox.find('.lb-prevLink').height(newHeight)
-    this.lightbox.find('.lb-nextLink').height(newHeight)
+    this.lightbox.find('.lb-data-container').width(newWidth)
+    this.lightbox.find('.lb-prev-link').height(newHeight)
+    this.lightbox.find('.lb-next-link').height(newHeight)
     this.showImage()
   }
 
@@ -436,7 +461,7 @@ export default class LightBox {
 
     this.outerContainer[0].classList.remove('animating')
 
-    this.lightbox.find('.lb-dataContainer').fadeIn(this.options.resizeDuration, () => this.sizeOverlay())
+    this.lightbox.find('.lb-data-container').fadeIn(this.options.resizeDuration, () => this.sizeOverlay())
   }
 
   private preloadNeighboringImages (): void {
