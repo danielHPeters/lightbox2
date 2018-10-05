@@ -147,7 +147,6 @@ export default class LightBox {
   }
 
   private build (): void {
-    console.log('Start build')
     this.generateHtmlLayout()
     this.cache()
 
@@ -172,20 +171,12 @@ export default class LightBox {
     })
 
     this.lightbox.find('.lb-prev').on('click', () => {
-      if (this.currentImageIndex === 0) {
-        this.changeImage(this.album.length - 1)
-      } else {
-        this.changeImage(this.currentImageIndex - 1)
-      }
+      this.changeImage(this.currentImageIndex === 0 ? this.album.length - 1 : this.currentImageIndex - 1)
       return false
     })
 
     this.lightbox.find('.lb-next').on('click', () => {
-      if (this.currentImageIndex === this.album.length - 1) {
-        this.changeImage(0)
-      } else {
-        this.changeImage(this.currentImageIndex + 1)
-      }
+      this.changeImage(this.currentImageIndex === this.album.length - 1 ? 0 : this.currentImageIndex + 1)
       return false
     })
 
