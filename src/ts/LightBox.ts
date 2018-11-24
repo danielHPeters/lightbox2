@@ -1,5 +1,6 @@
 import Box from './Box'
 import ImageProps from './ImageProps'
+import Effects from './util/Effects'
 
 export interface LightBoxOptions {
   albumLabel: string
@@ -43,12 +44,23 @@ export default class LightBox {
   private album: ImageProps[]
   private currentImageIndex: number
   private options: Partial<LightBoxOptions>
-  private lightbox: JQuery<HTMLElement>
-  private overlay: JQuery<HTMLElement>
-  private outerContainer: JQuery<HTMLElement>
-  private container: JQuery<HTMLElement>
-  private image: JQuery<HTMLElement>
-  private nav: JQuery<HTMLElement>
+  private lightBox: HTMLElement
+  private overlay: HTMLElement
+  private outerContainer: HTMLElement
+  private container: HTMLElement
+  private image: HTMLImageElement
+  private nav: HTMLElement
+  private navPrevious: HTMLElement
+  private navNext: HTMLElement
+  private loader: HTMLElement
+  private cancel: HTMLElement
+  private dataContainer: HTMLElement
+  private dataElement: HTMLElement
+  private details: HTMLElement
+  private caption: HTMLElement
+  private numberElement: HTMLElement
+  private closeContainer: HTMLElement
+  private close: HTMLElement
   private containerPadding: Box
   private imageBorderWidth: Box
   private readonly keyboardEventHandler: any
@@ -58,7 +70,7 @@ export default class LightBox {
     this.currentImageIndex = undefined
 
     // options
-    this.options = $.extend({}, options, LightBox.defaults)
+    this.options = { ...LightBox.defaults, ...options }
     this.keyboardEventHandler = this.keyboardAction.bind(this)
   }
 
@@ -81,69 +93,90 @@ export default class LightBox {
   }
 
   private enable (): void {
-    $('body').on(
-      'click',
-      'a[data-lightbox], area[data-lightbox]',
-      event => {
-        this.start($(event.currentTarget))
-        return false
-      })
+    document.querySelectorAll('a[data-lightbox], area[data-lightbox]')
+      .forEach((element: HTMLAnchorElement) => element.addEventListener('click', event => {
+        event.preventDefault()
+        event.stopPropagation()
+        this.start(element)
+      }))
   }
 
   private generateHtmlLayout (): void {
-    $('body').append(
-      '<div id="lightBoxOverlay" class="lb-overlay"></div>' +
-      '<div id="lightBox" class="lb">' +
-      '<div class="lb-outer-container">' +
-      '<div class="lb-container">' +
-      '<img class="lb-image" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==">' +
-      '<div class="lb-nav">' +
-      '<a class="lb-prev" href="" ></a>' +
-      '<a class="lb-next" href="" ></a>' +
-      '</div>' +
-      '<div class="lb-loader">' +
-      '<a class="lb-cancel"></a>' +
-      '</div>' +
-      '</div>' +
-      '</div>' +
-      '<div class="lb-data-container">' +
-      '<div class="lb-data">' +
-      '<div class="lb-details">' +
-      '<span class="lb-caption"></span>' +
-      '<span class="lb-number"></span>' +
-      '</div>' +
-      '<div class="lb-close-container">' +
-      '<a class="lb-close"></a>' +
-      '</div>' +
-      '</div>' +
-      '</div>' +
-      '</div>'
-    )
+    const fragment = document.createDocumentFragment()
+    this.overlay = document.createElement('div')
+    this.lightBox = document.createElement('div')
+    this.outerContainer = document.createElement('div')
+    this.container = document.createElement('div')
+    this.image = document.createElement('img')
+    this.nav = document.createElement('div')
+    this.navPrevious = document.createElement('a')
+    this.navNext = document.createElement('a')
+    this.loader = document.createElement('div')
+    this.cancel = document.createElement('a')
+    this.dataContainer = document.createElement('div')
+    this.dataElement = document.createElement('div')
+    this.details = document.createElement('div')
+    this.caption = document.createElement('span')
+    this.numberElement = document.createElement('span')
+    this.closeContainer = document.createElement('div')
+    this.close = document.createElement('a')
+    this.overlay.classList.add('lb-overlay')
+    this.lightBox.classList.add('lb')
+    this.outerContainer.classList.add('lb-outer-container')
+    this.container.classList.add('lb-container')
+    this.image.classList.add('lb-image')
+    this.image.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='
+    this.nav.classList.add('lb-nav')
+    this.navPrevious.classList.add('lb-prev')
+    this.navNext.classList.add('lb-next')
+    this.loader.classList.add('lb-loader')
+    this.cancel.classList.add('lb-cancel')
+    this.dataContainer.classList.add('lb-data-container')
+    this.dataElement.classList.add('lb-data')
+    this.details.classList.add('lb-details')
+    this.caption.classList.add('lb-caption')
+    this.numberElement.classList.add('lb-number')
+    this.closeContainer.classList.add('lb-close-container')
+    this.close.classList.add('lb-close')
+    this.lightBox.appendChild(this.outerContainer)
+    this.lightBox.appendChild(this.dataContainer)
+    this.outerContainer.appendChild(this.container)
+    this.container.appendChild(this.image)
+    this.container.appendChild(this.nav)
+    this.container.appendChild(this.loader)
+    this.nav.appendChild(this.navPrevious)
+    this.nav.appendChild(this.navNext)
+    this.loader.appendChild(this.cancel)
+    this.dataContainer.appendChild(this.dataElement)
+    this.dataElement.appendChild(this.details)
+    this.dataElement.appendChild(this.closeContainer)
+    this.details.appendChild(this.caption)
+    this.details.appendChild(this.numberElement)
+    this.closeContainer.appendChild(this.close)
+
+    fragment.appendChild(this.overlay)
+    fragment.appendChild(this.lightBox)
+    document.body.appendChild(fragment)
   }
 
   private cache (): void {
-    // Cache jQuery objects
-    this.lightbox = $('#lightBox')
-    this.overlay = $('#lightBoxOverlay')
-    this.outerContainer = this.lightbox.find('.lb-outer-container')
-    this.container = this.lightbox.find('.lb-container')
-    this.image = this.lightbox.find('.lb-image')
-    this.nav = this.lightbox.find('.lb-nav')
+    // Cache HTML elements
 
     // Store sass values for future lookup
     this.containerPadding = {
-      top: parseInt(this.container.css('padding-top'), 10),
-      right: parseInt(this.container.css('padding-right'), 10),
-      bottom: parseInt(this.container.css('padding-bottom'), 10),
-      left: parseInt(this.container.css('padding-left'), 10)
+      top: parseInt(getComputedStyle(this.container)['padding-top'], 10),
+      right: parseInt(getComputedStyle(this.container)['padding-right'], 10),
+      bottom: parseInt(getComputedStyle(this.container)['padding-bottom'], 10),
+      left: parseInt(getComputedStyle(this.container)['padding-left'], 10)
     }
 
     this.imageBorderWidth = {
-      top: parseInt(this.image.css('border-top-width'), 10),
-      right: parseInt(this.image.css('border-right-width'), 10),
-      bottom: parseInt(this.image.css('border-bottom-width'), 10),
-      left: parseInt(this.image.css('border-left-width'), 10)
+      top: parseInt(getComputedStyle(this.image)['border-top-width'], 10),
+      right: parseInt(getComputedStyle(this.image)['border-right-width'], 10),
+      bottom: parseInt(getComputedStyle(this.image)['border-bottom-width'], 10),
+      left: parseInt(getComputedStyle(this.image)['border-left-width'], 10)
     }
+    console.log(this.imageBorderWidth)
   }
 
   private build (): void {
@@ -151,33 +184,40 @@ export default class LightBox {
     this.cache()
 
     // Attach event handlers to the newly minted DOM elements
-    this.overlay.hide().on('click', () => {
+    this.overlay.style.display = 'none'
+    this.overlay.addEventListener('click', event => {
+      event.preventDefault()
+      event.stopPropagation()
       this.end()
-      return false
     })
 
-    this.lightbox.hide().on('click', event => {
-      if ($(event.target).attr('id') === 'lightBox') {
-        this.end()
-      }
-      return false
+    this.lightBox.style.display = 'none'
+    this.lightBox.addEventListener('click', event => {
+      event.preventDefault()
+      event.stopPropagation()
+      this.end()
     })
 
-    this.outerContainer.on('click', event => {
-      if ($(event.target).attr('id') === 'lightBox') {
-        this.end()
-      }
-      return false
+    // Prevent lightBox from closing when clicking on image
+    this.container.addEventListener('click', event => event.stopPropagation())
+    this.dataContainer.addEventListener('click', event => event.stopPropagation())
+
+    this.outerContainer.addEventListener('click', event => {
+      event.preventDefault()
+      event.stopPropagation()
+      this.end()
     })
 
-    this.lightbox.find('.lb-prev').on('click', () => {
+    this.lightBox.querySelector('.lb-prev').addEventListener('click', event => {
+      event.preventDefault()
+      event.stopPropagation()
       this.changeImage(this.currentImageIndex === 0 ? this.album.length - 1 : this.currentImageIndex - 1)
-      return false
     })
 
-    this.lightbox.find('.lb-next').on('click', () => {
+    this.lightBox.querySelector('.lb-next').addEventListener('click', event => {
+      event.preventDefault()
+      event.stopPropagation()
       this.changeImage(this.currentImageIndex === this.album.length - 1 ? 0 : this.currentImageIndex + 1)
-      return false
     })
 
     /*
@@ -193,53 +233,53 @@ export default class LightBox {
       we set the pointer events back to auto for the nav div so it can capture hover and left-click
       events as usual.
      */
-    this.nav.on('mousedown', event => {
+    this.nav.addEventListener('mousedown', event => {
       if (event.which === 3) {
-        this.nav.css('pointer-events', 'none')
+        this.nav.style.pointerEvents = 'none'
 
-        this.lightbox.one('contextmenu', () => {
-          setTimeout(() => this.nav.css('pointer-events', 'auto'))
-        })
+        this.lightBox.addEventListener('contextmenu', () => {
+          setTimeout(() => this.nav.style.pointerEvents = 'auto')
+        }, { once: true })
       }
     })
 
-    this.lightbox.find('.lb-loader, .lb-close').on('click', () => {
-      this.end()
-      return false
-    })
+    this.lightBox.querySelectorAll('.lb-loader, .lb-close').forEach(element =>
+      element.addEventListener('click', event => {
+        event.preventDefault()
+        event.stopPropagation()
+        this.end()
+      }))
   }
 
-  private start ($link): void {
-    const $window = $(window)
+  private start (link: HTMLAnchorElement): void {
+    self.addEventListener('resize', () => this.sizeOverlay())
 
-    $window.on('resize', () => this.sizeOverlay())
-
-    $('select, object, embed').css({
-      visibility: 'hidden'
-    })
+    document.querySelectorAll('select, object, embed')
+      .forEach((element: HTMLElement) => element.style.visibility = 'hidden')
 
     this.sizeOverlay()
 
     this.album = []
     let imageNumber = 0
 
-    const dataLightboxValue = $link.attr('data-lightbox')
-    const $links = $($link.prop('tagName') + '[data-lightbox="' + dataLightboxValue + '"]')
+    const dataLightBoxValue = link.getAttribute('data-lightbox')
+    const links = document.querySelectorAll(link.tagName + '[data-lightbox="' + dataLightBoxValue + '"]')
 
-    for (let i = 0; i < $links.length; i = ++i) {
-      this.addToAlbum($($links[i]))
-      if ($links[i] === $link[0]) {
-        imageNumber = i
+    links.forEach((element: HTMLAnchorElement, key: number) => {
+      this.addToAlbum(element)
+
+      if (element === link) {
+        imageNumber = key
       }
-    }
+    })
 
-    // Position Lightbox
-    const top = $window.scrollTop() + this.options.positionFromTop
-    const left = $window.scrollLeft()
-    this.lightbox.css({
-      top: top + 'px',
-      left: left + 'px'
-    }).fadeIn(this.options.fadeDuration)
+    // Position LightBox
+    const top = document.documentElement.scrollTop + this.options.positionFromTop
+    const left = document.documentElement.scrollLeft
+
+    this.lightBox.style.top = top + 'px'
+    this.lightBox.style.left = left + 'px'
+    Effects.fadeIn(this.lightBox, this.options.fadeDuration)
 
     // Disable scrolling of the page while open
     if (this.options.disableScrolling) {
@@ -251,14 +291,15 @@ export default class LightBox {
 
   private changeImage (imageNumber: number): void {
     this.disableKeyboardNav()
-    const image = this.lightbox.find('.lb-image')
 
-    this.overlay.fadeIn(this.options.fadeDuration)
+    Effects.fadeIn(this.overlay, this.options.fadeDuration)
 
-    $('.lb-loader').fadeIn('slow')
-    this.lightbox.find('.lb-image, .lb-nav, .lb-prev, .lb-next, .lb-data-container, .lb-numbers, .lb-caption').hide()
+    Effects.fadeIn(this.loader)
+    this.lightBox
+      .querySelectorAll('.lb-image, .lb-nav, .lb-prev, .lb-next, .lb-data-container, .lb-numbers, .lb-caption')
+      .forEach((element: HTMLElement) => element.style.display = 'none')
 
-    this.outerContainer.addClass('animating')
+    this.outerContainer.classList.add('animating')
 
     // When image to show is preloaded, we send the width and height to sizeContainer()
     const preloader = new Image()
@@ -270,20 +311,18 @@ export default class LightBox {
       let windowHeight
       let windowWidth
 
-      image.attr({
-        alt: this.album[imageNumber].alt,
-        src: this.album[imageNumber].link
-      })
+      this.image.alt = this.album[imageNumber].alt
+      this.image.src = this.album[imageNumber].href
 
-      image.width(preloader.width)
-      image.height(preloader.height)
+      this.image.width = preloader.width
+      this.image.height = preloader.height
 
       if (this.options.fitImagesInViewport) {
         // Fit image inside the viewport.
         // Take into account the border around the image and an additional 10px gutter on each side.
 
-        windowWidth = $(window).width()
-        windowHeight = $(window).height()
+        windowWidth = self.innerWidth
+        windowHeight = self.innerHeight
         maxImageWidth = windowWidth - this.containerPadding.left - this.containerPadding.right - this.imageBorderWidth.left - this.imageBorderWidth.right - 20
         maxImageHeight = windowHeight - this.containerPadding.top - this.containerPadding.bottom - this.imageBorderWidth.top - this.imageBorderWidth.bottom - 120
 
@@ -301,45 +340,49 @@ export default class LightBox {
           if ((preloader.width / maxImageWidth) > (preloader.height / maxImageHeight)) {
             imageWidth = maxImageWidth
             imageHeight = preloader.height / (preloader.width / imageWidth)
-            image.width(imageWidth)
-            image.height(imageHeight)
+            this.image.width = imageWidth
+            this.image.height = imageHeight
           } else {
             imageHeight = maxImageHeight
             imageWidth = preloader.width / (preloader.height / imageHeight)
-            image.width(imageWidth)
-            image.height(imageHeight)
+            this.image.width = imageWidth
+            this.image.height = imageHeight
           }
         }
       }
-      this.sizeContainer(image.width(), image.height())
+      this.sizeContainer(this.image.width, this.image.height)
     }
 
-    preloader.src = this.album[imageNumber].link
+    preloader.src = this.album[imageNumber].href
     this.currentImageIndex = imageNumber
   }
 
-  private addToAlbum (link): void {
+  private addToAlbum (link: HTMLAnchorElement): void {
     this.album.push({
-      alt: link.attr('data-alt'),
-      link: link.attr('href'),
-      title: link.attr('data-title') || link.attr('title')
+      alt: link.getAttribute('data-alt'),
+      href: link.getAttribute('href'),
+      title: link.getAttribute('data-title') || link.getAttribute('title')
     })
   }
 
   private sizeOverlay (): void {
-    this.overlay
-      .width($(document).width())
-      .height($(document).height())
+    const body = document.body
+    const html = document.documentElement
+    const height = Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight)
+    const width = Math.min(body.scrollWidth, body.offsetWidth, html.clientWidth, html.scrollWidth, html.offsetWidth)
+
+    this.overlay.style.width = width + 'px'
+    this.overlay.style.height = height + 'px'
   }
 
-  private sizeContainer (imageWidth: number, imageHeight: number) {
-    const oldWidth = this.outerContainer.outerWidth()
-    const oldHeight = this.outerContainer.outerHeight()
-    const newWidth = imageWidth + this.containerPadding.left + this.containerPadding.right + this.imageBorderWidth.left + this.imageBorderWidth.right
-    const newHeight = imageHeight + this.containerPadding.top + this.containerPadding.bottom + this.imageBorderWidth.top + this.imageBorderWidth.bottom
+  private sizeContainer (imageWidth: number, imageHeight: number): void {
+    const oldWidth = this.outerContainer.offsetWidth
+    const oldHeight = this.outerContainer.offsetHeight
+    const newWidth = imageWidth
+    const newHeight = imageHeight
 
     if (oldWidth !== newWidth || oldHeight !== newHeight) {
-      this.outerContainer.animate({
+      $(this.outerContainer).animate({
         width: newWidth,
         height: newHeight
       }, this.options.resizeDuration, 'swing', () => {
@@ -350,20 +393,19 @@ export default class LightBox {
     }
   }
 
-  private postResize (newWidth: number, newHeight: number) {
-    this.lightbox.find('.lb-data-container').width(newWidth)
-    this.lightbox.find('.lb-prev-link').height(newHeight)
-    this.lightbox.find('.lb-next-link').height(newHeight)
+  private postResize (newWidth: number, newHeight: number): void {
+    this.dataContainer.style.width = newWidth + 'px'
+    this.navPrevious.style.height = newHeight + 'px'
+    this.navNext.style.height = newHeight + 'px'
     this.showImage()
   }
 
   private showImage (): void {
-    this.lightbox.find('.lb-loader').stop(true).hide()
-    this.lightbox.find('.lb-image').fadeIn(this.options.imageFadeDuration)
-
+    this.loader.style.display = 'none'
+    Effects.fadeIn(this.image, this.options.imageFadeDuration)
     this.updateNav()
     this.updateDetails()
-    this.preloadNeighboringImages()
+    this.preloadNeighbouringImages()
     this.enableKeyboardNav()
   }
 
@@ -379,25 +421,28 @@ export default class LightBox {
       console.error(e)
     }
 
-    this.lightbox.find('.lb-nav').show()
+    this.nav.style.display = ''
 
     if (this.album.length > 1) {
       if (this.options.wrapAround) {
         if (alwaysShowNav) {
-          this.lightbox.find('.lb-prev, .lb-next').css('opacity', '1')
+          this.navNext.style.opacity = '1'
+          this.navPrevious.style.opacity = '1'
         }
-        this.lightbox.find('.lb-prev, .lb-next').show()
+        this.navNext.style.display = ''
+        this.navPrevious.style.display = ''
       } else {
         if (this.currentImageIndex > 0) {
-          this.lightbox.find('.lb-prev').show()
+          this.navPrevious.style.display = ''
+
           if (alwaysShowNav) {
-            this.lightbox.find('.lb-prev').css('opacity', '1')
+            this.navPrevious.style.opacity = '1'
           }
         }
         if (this.currentImageIndex < this.album.length - 1) {
-          this.lightbox.find('.lb-next').show()
+          this.navNext.style.display = ''
           if (alwaysShowNav) {
-            this.lightbox.find('.lb-next').css('opacity', '1')
+            this.navNext.style.opacity = '1'
           }
         }
       }
@@ -409,42 +454,43 @@ export default class LightBox {
     // Thanks Nate Wright for the fix. @https://github.com/NateWr
     if (typeof this.album[this.currentImageIndex].title !== undefined &&
       this.album[this.currentImageIndex].title !== '') {
-      const $caption = this.lightbox.find('.lb-caption')
 
       if (this.options.sanitizeTitle) {
-        $caption.text(this.album[this.currentImageIndex].title)
+        this.caption.textContent = this.album[this.currentImageIndex].title
       } else {
-        $caption.html(this.album[this.currentImageIndex].title)
+        this.caption.innerHTML = this.album[this.currentImageIndex].title
       }
-      $caption.fadeIn('fast').find('a').on('click', function () {
-        if ($(this).attr('target') !== undefined) {
-          window.open($(this).attr('href'), $(this).attr('target'))
-        } else {
-          location.href = $(this).attr('href')
-        }
-      })
+      Effects.fadeIn(this.caption)
+      this.caption.querySelectorAll('a')
+        .forEach((element: HTMLElement) => element.addEventListener('click', event => {
+          const anchor = event.currentTarget as HTMLAnchorElement
+          if (anchor.target !== undefined) {
+            self.open(anchor.href, anchor.target)
+          } else {
+            location.href = anchor.href
+          }
+        }))
     }
 
     if (this.album.length > 1 && this.options.showImageNumberLabel) {
-      const labelText = this.imageCountLabel(this.currentImageIndex + 1, this.album.length)
-      this.lightbox.find('.lb-number').text(labelText).fadeIn('fast')
+      this.numberElement.textContent = this.imageCountLabel(this.currentImageIndex + 1, this.album.length)
+      Effects.fadeIn(this.numberElement)
     } else {
-      this.lightbox.find('.lb-number').hide()
+      this.numberElement.style.display = 'none'
     }
 
-    this.outerContainer[0].classList.remove('animating')
-
-    this.lightbox.find('.lb-data-container').fadeIn(this.options.resizeDuration, () => this.sizeOverlay())
+    this.outerContainer.classList.remove('animating')
+    Effects.fadeIn(this.dataContainer, this.options.resizeDuration, () => this.sizeOverlay())
   }
 
-  private preloadNeighboringImages (): void {
+  private preloadNeighbouringImages (): void {
     if (this.album.length > this.currentImageIndex + 1) {
       const preloadNext = new Image()
-      preloadNext.src = this.album[this.currentImageIndex + 1].link
+      preloadNext.src = this.album[this.currentImageIndex + 1].href
     }
     if (this.currentImageIndex > 0) {
       const preloadPrev = new Image()
-      preloadPrev.src = this.album[this.currentImageIndex - 1].link
+      preloadPrev.src = this.album[this.currentImageIndex - 1].href
     }
   }
 
@@ -476,12 +522,11 @@ export default class LightBox {
 
   private end (): void {
     this.disableKeyboardNav()
-    $(window).off('resize', this.sizeOverlay)
-    this.lightbox.fadeOut(this.options.fadeDuration)
-    this.overlay.fadeOut(this.options.fadeDuration)
-    $('select, object, embed').css({
-      visibility: 'visible'
-    })
+    self.removeEventListener('resize', this.sizeOverlay)
+    Effects.fadeOut(this.lightBox, this.options.fadeDuration)
+    Effects.fadeOut(this.overlay, this.options.fadeDuration)
+    document.querySelectorAll('select, object, embed')
+      .forEach((element: HTMLElement) => element.style.visibility = 'visible')
 
     if (this.options.disableScrolling) {
       document.documentElement.classList.remove('lb-disable-scrolling')

@@ -1,5 +1,5 @@
 export default interface ImageProps {
   alt: string
-  link: string
+  href: string
   title: string
 }
