@@ -1,4 +1,3 @@
-import Box from './Box'
 import ImageProps from './ImageProps'
 import Effects from './util/Effects'
 
@@ -61,17 +60,16 @@ export default class LightBox {
   private numberElement: HTMLElement
   private closeContainer: HTMLElement
   private close: HTMLElement
-  private containerPadding: Box
-  private imageBorderWidth: Box
   private readonly keyboardEventHandler: any
+  private readonly resizeListener: any
 
   private constructor (options?: Partial<LightBoxOptions>) {
     this.album = []
-    this.currentImageIndex = undefined
 
     // options
     this.options = { ...LightBox.defaults, ...options }
     this.keyboardEventHandler = this.keyboardAction.bind(this)
+    this.resizeListener = () => this.sizeOverlay()
   }
 
   static getInstance (options?: Partial<LightBoxOptions>): LightBox {
@@ -159,29 +157,8 @@ export default class LightBox {
     document.body.appendChild(fragment)
   }
 
-  private cache (): void {
-    // Cache HTML elements
-
-    // Store sass values for future lookup
-    this.containerPadding = {
-      top: parseInt(getComputedStyle(this.container)['padding-top'], 10),
-      right: parseInt(getComputedStyle(this.container)['padding-right'], 10),
-      bottom: parseInt(getComputedStyle(this.container)['padding-bottom'], 10),
-      left: parseInt(getComputedStyle(this.container)['padding-left'], 10)
-    }
-
-    this.imageBorderWidth = {
-      top: parseInt(getComputedStyle(this.image)['border-top-width'], 10),
-      right: parseInt(getComputedStyle(this.image)['border-right-width'], 10),
-      bottom: parseInt(getComputedStyle(this.image)['border-bottom-width'], 10),
-      left: parseInt(getComputedStyle(this.image)['border-left-width'], 10)
-    }
-    console.log(this.imageBorderWidth)
-  }
-
   private build (): void {
     this.generateHtmlLayout()
-    this.cache()
 
     // Attach event handlers to the newly minted DOM elements
     this.overlay.style.display = 'none'
@@ -198,7 +175,7 @@ export default class LightBox {
       this.end()
     })
 
-    // Prevent lightBox from closing when clicking on image
+    // Prevent lightBox from closing when clicking on image and data containers
     this.container.addEventListener('click', event => event.stopPropagation())
     this.dataContainer.addEventListener('click', event => event.stopPropagation())
 
@@ -208,13 +185,13 @@ export default class LightBox {
       this.end()
     })
 
-    this.lightBox.querySelector('.lb-prev').addEventListener('click', event => {
+    this.navPrevious.addEventListener('click', event => {
       event.preventDefault()
       event.stopPropagation()
       this.changeImage(this.currentImageIndex === 0 ? this.album.length - 1 : this.currentImageIndex - 1)
     })
 
-    this.lightBox.querySelector('.lb-next').addEventListener('click', event => {
+    this.navNext.addEventListener('click', event => {
       event.preventDefault()
       event.stopPropagation()
       this.changeImage(this.currentImageIndex === this.album.length - 1 ? 0 : this.currentImageIndex + 1)
@@ -252,7 +229,7 @@ export default class LightBox {
   }
 
   private start (link: HTMLAnchorElement): void {
-    self.addEventListener('resize', () => this.sizeOverlay())
+    self.addEventListener('resize', this.resizeListener)
 
     document.querySelectorAll('select, object, embed')
       .forEach((element: HTMLElement) => element.style.visibility = 'hidden')
@@ -279,6 +256,7 @@ export default class LightBox {
 
     this.lightBox.style.top = top + 'px'
     this.lightBox.style.left = left + 'px'
+    Effects.fadeIn(this.overlay, this.options.fadeDuration)
     Effects.fadeIn(this.lightBox, this.options.fadeDuration)
 
     // Disable scrolling of the page while open
@@ -291,8 +269,6 @@ export default class LightBox {
 
   private changeImage (imageNumber: number): void {
     this.disableKeyboardNav()
-
-    Effects.fadeIn(this.overlay, this.options.fadeDuration)
 
     Effects.fadeIn(this.loader)
     this.lightBox
@@ -323,8 +299,8 @@ export default class LightBox {
 
         windowWidth = self.innerWidth
         windowHeight = self.innerHeight
-        maxImageWidth = windowWidth - this.containerPadding.left - this.containerPadding.right - this.imageBorderWidth.left - this.imageBorderWidth.right - 20
-        maxImageHeight = windowHeight - this.containerPadding.top - this.containerPadding.bottom - this.imageBorderWidth.top - this.imageBorderWidth.bottom - 120
+        maxImageWidth = windowWidth - 20
+        maxImageHeight = windowHeight - 120
 
         // Check if image size is larger then maxWidth|maxHeight in settings
         if (this.options.maxWidth && this.options.maxWidth < maxImageWidth) {
@@ -378,18 +354,16 @@ export default class LightBox {
   private sizeContainer (imageWidth: number, imageHeight: number): void {
     const oldWidth = this.outerContainer.offsetWidth
     const oldHeight = this.outerContainer.offsetHeight
-    const newWidth = imageWidth
-    const newHeight = imageHeight
 
-    if (oldWidth !== newWidth || oldHeight !== newHeight) {
+    if (oldWidth !== imageWidth || oldHeight !== imageHeight) {
       $(this.outerContainer).animate({
-        width: newWidth,
-        height: newHeight
+        width: imageWidth,
+        height: imageHeight
       }, this.options.resizeDuration, 'swing', () => {
-        this.postResize(newWidth, newHeight)
+        this.postResize(imageWidth, imageHeight)
       })
     } else {
-      this.postResize(newWidth, newHeight)
+      this.postResize(imageWidth, imageHeight)
     }
   }
 
@@ -522,7 +496,7 @@ export default class LightBox {
 
   private end (): void {
     this.disableKeyboardNav()
-    self.removeEventListener('resize', this.sizeOverlay)
+    self.removeEventListener('resize', this.resizeListener)
     Effects.fadeOut(this.lightBox, this.options.fadeDuration)
     Effects.fadeOut(this.overlay, this.options.fadeDuration)
     document.querySelectorAll('select, object, embed')

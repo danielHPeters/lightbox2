@@ -2,7 +2,7 @@ export default class Effects {
   static fadeIn (el: HTMLElement, time: number = 400, callback: () => void = undefined) {
     el.style.opacity = ''
     let baseOpacity = parseFloat(getComputedStyle(el)['opacity'])
-    console.log(baseOpacity)
+
     el.style.opacity = '0'
     el.style.display = ''
 
