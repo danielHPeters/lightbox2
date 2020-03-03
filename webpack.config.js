@@ -23,7 +23,7 @@ module.exports = {
       // all files with a '.ts' or '.tsx' extension will be handled by 'awesome-typescript-loader'.
       {
         test: /\.tsx?$/,
-        loaders: ['awesome-typescript-loader']
+        loader: ['awesome-typescript-loader']
       },
       {
         test: /\.(png|jpg|gif|svg)$/,
@@ -43,8 +43,7 @@ module.exports = {
             {
               loader: 'css-loader',
               options: {
-                sourceMap: true,
-                root: path.resolve(__dirname)
+                sourceMap: true
               }
             },
             {

@@ -24,8 +24,6 @@ export default class Effects {
   }
 
   static fadeOut (el: HTMLElement, time: number = 400, callback: () => void = undefined) {
-    el.style.opacity = '1'
-
     let last = +new Date()
     const tick = () => {
       el.style.opacity = (+el.style.opacity - (+new Date() - last) / time).toString()
