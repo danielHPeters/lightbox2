@@ -185,7 +185,7 @@ export default class LightBox {
     this.addCloseEvent(this.lightBox, this.overlay.element, this.outerContainer, this.loader, this.close)
 
     // Prevent lightBox from closing when clicking on image and data containers
-    this.container.registerEvent('click', event => event.stopPropagation())
+    this.container.addListener('click', event => event.stopPropagation())
     this.dataContainer.addEventListener('click', event => event.stopPropagation())
 
     this.navPrevious.addListener('click', event => {

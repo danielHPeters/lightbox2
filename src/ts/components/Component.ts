@@ -69,10 +69,6 @@ export default abstract class Component<T extends HTMLElement> {
     this.element.textContent = data
   }
 
-  registerEvent (type: string, action: (event: Event) => void): void {
-    this.element.addEventListener(type, action)
-  }
-
   abstract update (): void
 
   render (): void {
